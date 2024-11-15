@@ -1,13 +1,143 @@
-<!DOCTYPE html><html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><link rel="stylesheet" type="text/css" href="cid:css-bc85c2d5-093d-4afb-bb53-4c9cfb56b7dd@mhtml.blink" />
-    
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Advanced Media Player with Channel List and Search</title>
-    
-    
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <style>
+        /* پس‌زمینه بلور و رنگارنگ */
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-image: radial-gradient(circle, rgba(63, 94, 251, 0.8), rgba(252, 70, 107, 0.8), rgba(131, 58, 180, 0.8));
+            background-size: cover;
+            backdrop-filter: blur(20px);
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+        }
+
+        /* محفظه پلیر */
+        #player-container {
+            position: relative;
+            width: 80%;
+            max-width: 600px;
+            background-color: rgba(0, 0, 0, 0.8);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        /* ویدیو */
+        #video {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* کنترل‌های پلیر */
+        #controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            border-top: 1px solid #555;
+        }
+
+        /* دکمه‌های کنترلی */
+        .btn {
+            background: none;
+            border: none;
+            color: #ffffff;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: color 0.3s;
+            outline: none;
+        }
+
+        .btn:hover {
+            color: #00b7ff;
+        }
+
+        /* نوار پیشرفت و صدا */
+        #progress-bar-container {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            gap: 5px;
+        }
+
+        #progress-bar {
+            flex-grow: 1;
+            height: 5px;
+            border-radius: 2.5px;
+            background-color: #444;
+            overflow: hidden;
+            position: relative;
+            cursor: pointer;
+        }
+
+        #progress-filled {
+            height: 100%;
+            width: 0;
+            background-color: #00b7ff;
+            transition: width 0.1s;
+        }
+
+        #volume-slider {
+            width: 60px;
+            cursor: pointer;
+        }
+
+        /* لیست کانال و جستجو */
+        #channel-controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+            background-color: rgba(0, 0, 0, 0.7);
+            border-top: 1px solid #555;
+        }
+
+        #iptv-select, #channel-list, #search-results {
+            margin-top: 10px;
+            width: 100%;
+            padding: 8px;
+            border-radius: 5px;
+            font-size: 1em;
+            background-color: #333;
+            color: #fff;
+            border: 1px solid #444;
+            outline: none;
+        }
+
+        #search-container {
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        #search-input {
+            padding: 6px;
+            font-size: 1em;
+            border-radius: 5px;
+            border: 1px solid #444;
+            outline: none;
+        }
+
+        #search-input:focus {
+            border-color: #00b7ff;
+        }
+    </style>
 </head>
 <body>
     <div id="player-container">
-        <video id="video" controls=""></video>
+        <video id="video" controls></video>
 
         <!-- کنترل‌های پلیر -->
         <div id="controls">
@@ -57,6 +187,193 @@
         </div>
     </div>
 
-    
+    <script>
+        const video = document.getElementById('video');
+        const iptvSelect = document.getElementById('iptv-select');
+        const playPauseBtn = document.getElementById('play-pause');
+        const prevChannelBtn = document.getElementById('prevChannel');
+        const nextChannelBtn = document.getElementById('nextChannel');
+        const firstChannelBtn = document.getElementById('firstChannel');
+        const fullscreenBtn = document.getElementById('fullscreen');
+        const progressBarContainer = document.getElementById('progress-bar');
+        const progressFilled = document.getElementById('progress-filled');
+        const currentTimeEl = document.getElementById('current-time');
+        const durationEl = document.getElementById('duration');
+        const volumeSlider = document.getElementById('volume-slider');
+        const channelList = document.getElementById('channel-list');
+        const searchInput = document.getElementById('search-input');
+        const searchResults = document.getElementById('search-results');
+
+        let isPlaying = false;
+        let channels = [];
+        let currentChannelIndex = 0;
+
+        // بارگذاری کانال‌ها بر اساس لینک انتخاب شده
+        async function loadChannels(url) {
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('Failed to load channels');
+                const data = await response.text();
+                channels = parseM3U(data);
+                populateChannelList(channels);
+                if (channels.length > 0) {
+                    loadChannel(channels[0].url); // بارگذاری اولین کانال
+                } else {
+                    alert('No channels found in the selected playlist.');
+                }
+            } catch (error) {
+                alert('Error loading channels: ' + error.message);
+            }
+        }
+
+        function parseM3U(data) {
+            const lines = data.split('\n');
+            const channels = [];
+            for (let i = 0; i < lines.length; i++) {
+                if (lines[i].startsWith('#EXTINF')) {
+                    const name = lines[i].split(',')[1]?.trim() || 'Unknown Channel';
+                    const url = lines[i + 1]?.trim();
+                    if (url) channels.push({ name, url });
+                }
+            }
+            return channels;
+        }
+
+        function populateChannelList(channelArray) {
+            channelList.innerHTML = '<option>Select a channel</option>'; // بازنشانی لیست کانال‌ها
+            channelArray.forEach((channel, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = channel.name;
+                channelList.appendChild(option);
+            });
+        }
+
+        function loadChannel(url) {
+            if (Hls.isSupported()) {
+                const hls = new Hls();
+                hls.loadSource(url);
+                hls.attachMedia(video);
+            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                video.src = url;
+            }
+            video.play();
+        }
+
+        // تغییر لینک IPTV
+        iptvSelect.addEventListener('change', (event) => {
+            const selectedUrl = event.target.value;
+            loadChannels(selectedUrl);
+        });
+
+        // پخش و توقف ویدیو
+        playPauseBtn.addEventListener('click', () => {
+            if (video.paused) {
+                video.play();
+                isPlaying = true;
+            } else {
+                video.pause();
+                isPlaying = false;
+            }
+            updatePlayPauseBtn();
+        });
+
+        function updatePlayPauseBtn() {
+            playPauseBtn.textContent = isPlaying ? '⏸' : '▶️';
+        }
+
+        // کنترل کانال‌های قبلی و بعدی
+        prevChannelBtn.addEventListener('click', () => {
+            currentChannelIndex = (currentChannelIndex - 1 + channels.length) % channels.length;
+            loadChannel(channels[currentChannelIndex].url);
+            channelList.selectedIndex = currentChannelIndex + 1; // بروزرسانی انتخاب
+        });
+
+        nextChannelBtn.addEventListener('click', () => {
+            currentChannelIndex = (currentChannelIndex + 1) % channels.length;
+            loadChannel(channels[currentChannelIndex].url);
+            channelList.selectedIndex = currentChannelIndex + 1; // بروزرسانی انتخاب
+        });
+
+        // بازگشت به اولین کانال
+        firstChannelBtn.addEventListener('click', () => {
+            currentChannelIndex = 0;
+            loadChannel(channels[0].url);
+            channelList.selectedIndex = 1;
+        });
+
+        // حالت تمام‌صفحه
+        fullscreenBtn.addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                video.requestFullscreen();
+            } else {
+                document.exitFullscreen();
+            }
+        });
+
+        // تغییر کانال از لیست کشویی اصلی
+        channelList.addEventListener('change', (event) => {
+            const selectedIndex = event.target.value;
+            if (selectedIndex !== 'Select a channel') {
+                currentChannelIndex = parseInt(selectedIndex);
+                loadChannel(channels[currentChannelIndex].url);
+            }
+        });
+
+        // جستجو در کانال‌ها و نمایش نتایج در لیست جدید
+        searchInput.addEventListener('input', () => {
+            const searchTerm = searchInput.value.toLowerCase();
+            const filteredChannels = channels.filter(channel => 
+                channel.name.toLowerCase().includes(searchTerm)
+            );
+            populateSearchResults(filteredChannels);
+        });
+
+        function populateSearchResults(filteredChannels) {
+            searchResults.innerHTML = '<option>Search results</option>';
+            filteredChannels.forEach((channel, index) => {
+                const option = document.createElement('option');
+                option.value = channel.url;
+                option.textContent = channel.name;
+                searchResults.appendChild(option);
+            });
+        }
+
+        // انتخاب کانال از نتایج جستجو
+        searchResults.addEventListener('change', (event) => {
+            const selectedUrl = event.target.value;
+            if (selectedUrl !== 'Search results') {
+                loadChannel(selectedUrl);
+                currentChannelIndex = channels.findIndex(channel => channel.url === selectedUrl);
+            }
+        });
+
+        // تنظیم نوار پیشرفت
+        video.addEventListener('timeupdate', () => {
+            const percent = (video.currentTime / video.duration) * 100;
+            progressFilled.style.width = `${percent}%`;
+            updateTimeDisplay();
+        });
+
+        function updateTimeDisplay() {
+            const time = isNaN(video.currentTime) ? 0 : video.currentTime;
+            currentTimeEl.textContent = formatTime(time);
+            durationEl.textContent = formatTime(video.duration);
+        }
+
+        function formatTime(time) {
+            const minutes = Math.floor(time / 60);
+            const seconds = Math.floor(time % 60);
+            return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+        }
+
+        // تنظیم صدا
+        volumeSlider.addEventListener('input', () => {
+            video.volume = volumeSlider.value;
+        });
+
+        // بارگذاری کانال‌ها بر اساس لینک پیش‌فرض
+        loadChannels(iptvSelect.value);
+    </script>
 </body>
 </html>
