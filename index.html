@@ -1,288 +1,632 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fa">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>O2 Free Service</title>
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-    <style>
-        /* استایل کلی */
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: linear-gradient(135deg, rgba(255, 0, 150, 0.5), rgba(0, 204, 255, 0.5));
-            background-size: 400% 400%;
-            animation: gradientBG 8s ease infinite;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            color: white;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>O2 Modern IPTV Player (All-in-One)</title>
 
-        @keyframes gradientBG {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
+  <!-- کتابخانه Hls.js برای پخش استریم‌های HLS -->
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  
+  <style>
+    /* ریست پایه */
+    * {
+      margin: 0; 
+      padding: 0; 
+      box-sizing: border-box;
+      font-family: sans-serif, "IRANSans", Arial;
+    }
 
-        #main-container {
-            width: 90%;
-            max-width: 1200px;
-            backdrop-filter: blur(15px);
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-            padding: 20px;
-        }
+    /* پس‌زمینه با گرادیان انیمیشنی */
+    body {
+      background: linear-gradient(135deg, #001aff, #ff00d4, #ffeb00);
+      background-size: 600% 600%;
+      animation: gradientBG 12s ease infinite;
+      display: flex; 
+      justify-content: center; 
+      align-items: center;
+      min-height: 100vh;
+      color: #ffffff;
+    }
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
 
-        /* لوگوی متنی */
-        #logo h1 {
-            font-size: 3em;
-            font-weight: bold;
-            text-align: center;
-            color: #fff;
-            text-shadow: 0 0 10px #ff4d4d, 0 0 20px #ff4d4d, 0 0 30px #ff4d4d;
-            animation: glow 2s infinite;
-        }
+    /* کانتینر اصلی (سبک شیشه‌ای) */
+    #main-container {
+      width: 95%; 
+      max-width: 1300px;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(15px);
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      padding: 20px;
+      margin: 20px;
+      position: relative;
+    }
 
-        @keyframes glow {
-            0% { text-shadow: 0 0 10px #ff4d4d, 0 0 20px #ff4d4d; }
-            50% { text-shadow: 0 0 20px #ff4d4d, 0 0 30px #ff4d4d; }
-            100% { text-shadow: 0 0 10px #ff4d4d, 0 0 20px #ff4d4d; }
-        }
+    /* عنوان یا لوگو */
+    #logo h1 {
+      text-align: center;
+      font-size: 2.4rem;
+      margin-bottom: 25px;
+      color: #fff;
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
+      animation: glow 2s infinite;
+    }
+    @keyframes glow {
+      0%   { text-shadow: 0 0 10px #ff4d4d; }
+      50%  { text-shadow: 0 0 20px #ff4d4d; }
+      100% { text-shadow: 0 0 10px #ff4d4d; }
+    }
 
-        /* پلیر */
-        #player-container {
-            position: relative;
-            margin: 20px 0;
-        }
+    /* پلیر (ویدیو) */
+    #player-container {
+      position: relative;
+      margin: 0 auto;
+      width: 100%;
+    }
+    video {
+      width: 100%;
+      border-radius: 12px;
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+      display: block;
+      background: #000; /* پس‌زمینه تیره در صورت عدم بارگذاری استریم */
+    }
 
-        video {
-            width: 100%;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
-        }
+    /* کنترل‌های پلیر */
+    #controls {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      background: rgba(0, 0, 0, 0.5);
+      border-radius: 10px;
+      margin-top: 10px;
+      padding: 8px;
+    }
+    /* هر دکمه کنترل به صورت دایره‌ای با افکت Hover */
+    .control-btn {
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 1.8em;
+      cursor: pointer;
+      margin: 6px;
+      transition: transform 0.2s ease, background 0.2s;
+      position: relative;
+      border-radius: 50%;
+      width: 50px; 
+      height: 50px;
+      display: flex; 
+      align-items: center; 
+      justify-content: center;
+    }
+    .control-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: scale(1.2);
+    }
+    /* ایکون svg درون دکمه‌ها */
+    .icon {
+      width: 1em; 
+      height: 1em; 
+      fill: currentColor;
+    }
 
-        /* کنترل‌های پلیر */
-        #controls {
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            padding: 10px;
-            background: rgba(0, 0, 0, 0.7);
-            border-radius: 10px;
-            margin-top: 10px;
-        }
+    /* ولوم */
+    .volume-box {
+      display: flex;
+      align-items: center;
+      margin: 6px;
+      font-size: 1.4em;
+    }
+    #volume {
+      margin: 0 10px;
+      cursor: pointer;
+      width: 100px;
+    }
+    .volume-box svg {
+      width: 1.2em;
+      height: 1.2em;
+      fill: currentColor;
+    }
 
-        .control-btn {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 1.5em;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
+    /* بخش انتخاب فهرست IPTV */
+    #iptv-section {
+      margin-top: 20px;
+      text-align: center;
+    }
+    #iptv-select {
+      width: 100%;
+      max-width: 600px;
+      padding: 12px;
+      border-radius: 8px;
+      border: none;
+      outline: none;
+      font-size: 1rem;
+      background: rgba(255, 255, 255, 0.2);
+      color: #fff;
+      cursor: pointer;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+      transition: background 0.3s;
+    }
+    #iptv-select:hover {
+      background: rgba(255, 255, 255, 0.4);
+    }
 
-        .control-btn:hover {
-            color: #00b7ff;
-            transform: scale(1.2);
-        }
+    /* بخش جستجوی کانال */
+    .search-container {
+      position: relative;
+      width: 100%;
+      max-width: 600px;
+      margin: 20px auto;
+    }
+    .search-container input {
+      width: 100%;
+      padding: 12px 50px 12px 15px;
+      border-radius: 8px;
+      border: none;
+      outline: none;
+      font-size: 1rem;
+      background: rgba(255, 255, 255, 0.3);
+      color: #fff;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+      transition: background 0.3s;
+    }
+    .search-container input:focus {
+      background: rgba(255, 255, 255, 0.4);
+    }
+    .search-container svg {
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      fill: #fff;
+      width: 1.2em;
+      height: 1.2em;
+    }
 
-        /* کشوها */
-        select {
-            width: 100%;
-            max-width: 400px;
-            padding: 10px;
-            margin: 10px auto;
-            font-size: 1em;
-            border: none;
-            border-radius: 5px;
-            background: rgba(0, 0, 0, 0.7);
-            color: #ffffff;
-            text-align: center;
-            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
-        }
+    /* لیست کانال */
+    #channel-list-container {
+      max-width: 1000px;
+      margin: 0 auto;
+      max-height: 400px;
+      overflow-y: auto;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 10px;
+      padding: 10px;
+      box-shadow: 0 3px 15px rgba(0,0,0,0.4);
+    }
+    .channel-item {
+      display: flex;
+      align-items: center;
+      padding: 10px;
+      margin: 5px 0;
+      border-radius: 8px;
+      transition: 0.3s;
+      cursor: pointer;
+    }
+    .channel-item:hover {
+      background: rgba(255,255,255,0.25);
+    }
+    .channel-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      margin-right: 10px;
+      border: 2px solid #fff;
+    }
+    .channel-info {
+      display: flex;
+      flex-direction: column;
+    }
+    .channel-name {
+      font-size: 1.1rem;
+      font-weight: bold;
+      margin-bottom: 3px;
+    }
+    .channel-source {
+      font-size: 0.85rem;
+      opacity: 0.7;
+    }
 
-        /* تنظیمات متن گزینه‌های کشوی کانال‌ها */
-select option {
-    background: rgba(0, 0, 0, 0.9); /* پس‌زمینه تیره برای هر گزینه */
-    color: #ffffff; /* رنگ متن سفید */
-}
+    /* دکمه تلگرام */
+    #telegram-link {
+      display: inline-block;
+      margin: 30px auto;
+      padding: 14px 30px;
+      background-color: #0088cc;
+      color: white;
+      text-decoration: none;
+      font-size: 1.2rem;
+      border-radius: 30px;
+      text-align: center;
+      transition: 0.3s;
+      box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+    }
+    #telegram-link:hover {
+      background-color: #005f8a;
+      transform: scale(1.1);
+    }
 
-        /* دکمه تلگرام */
-        #telegram-link {
-            display: block;
-            margin: 20px auto;
-            padding: 15px 30px;
-            background-color: #0088cc;
-            color: white;
-            text-decoration: none;
-            font-size: 1.2em;
-            border-radius: 30px;
-            text-align: center;
-        }
-
-        #telegram-link:hover {
-            background-color: #005f8a;
-            transform: scale(1.1);
-        }
-    </style>
+    /* واکنشگرا */
+    @media (max-width: 768px) {
+      #controls {
+        flex-direction: column;
+      }
+      .control-btn {
+        margin: 10px 0;
+      }
+      .volume-box {
+        margin: 10px 0;
+      }
+    }
+  </style>
 </head>
+
 <body>
-    <div id="main-container">
-        <!-- لوگو -->
-        <div id="logo">
-            <h1>O2 Free Service</h1>
-        </div>
 
-        <!-- پلیر -->
-        <div id="player-container">
-            <video id="video"></video>
-            <div id="controls">
-                <button class="control-btn" id="play-pause">⏯</button>
-                <button class="control-btn" id="prev-channel">⏮</button>
-                <button class="control-btn" id="next-channel">⏭</button>
-                <button class="control-btn" id="fullscreen">⛶</button>
-                <input type="range" id="volume" min="0" max="1" step="0.1" value="1" style="width: 100px;">
-            </div>
-        </div>
+  <!-- مخزن SVG ها (Inline)؛ همه آیکون های لازم -->
+  <svg style="display: none;" aria-hidden="true" focusable="false">
+    <!-- fa-play -->
+    <symbol id="icon-play" viewBox="0 0 512 512">
+      <path d="M96 64C78.33 64 64 78.33 64 96V416C64 433.7 78.33 448 96 448C103.5 448 110.7 445.3 116.4 440.8L420.4 264.8C434.8 256 434.8 256 434.8 240C434.8 223.1 434.8 223.1 420.4 215.2L116.4 39.25C110.7 34.67 103.5 32 96 32C78.33 32 64 46.33 64 64L96 64z"/>
+    </symbol>
 
-        <!-- کشوهای کانال -->
-        <select id="iptv-select">
-    <option value="https://raw.githubusercontent.com/Free-TV/IPTV/master/playlist.m3u8">خارجی (o2)</option>
-    <option value="https://raw.githubusercontent.com/iptv-org/iptv/master/streams/ir.m3u">ایران (o2)</option>
-    <option value="https://raw.githubusercontent.com/iptv-org/iptv/master/streams/us_adultswim.m3u">Adult Swim (o2)</option>
-    <option value="https://raw.githubusercontent.com/iptv-org/iptv/master/streams/ru.m3u">تلویزیون روسیه (o2)</option>
-    <option value="https://raw.githubusercontent.com/iptv-org/iptv/master/streams/us_local.m3u">آمریکا (o2)</option>
-    <option value="https://raw.githubusercontent.com/iptv-org/iptv/master/streams/ir_aionet.m3u">IR Aionet (o2)</option>
-    <option value="https://iptv-org.github.io/iptv/countries/ir.m3u">IR WN (o2)</option>
-    <option value="https://iptv-org.github.io/iptv/categories/music.m3u">Music (o2)</option>
-    <option value="https://iptv-org.github.io/iptv/categories/news.m3u">News (o2)</option>
-    <option value="https://iptv-org.github.io/iptv/categories/sports.m3u">Sports (o2)</option>
-    <option value="https://raw.githubusercontent.com/iptv-org/iptv/master/streams/fr.m3u">France (o2)</option>
-    <option value="https://raw.githubusercontent.com/iptv-org/iptv/master/streams/de.m3u">Germany (o2)</option>
-    <option value="https://raw.githubusercontent.com/iptv-org/iptv/master/streams/ru.m3u">Russia (o2)</option>       
-    <option value="https://iptv-org.github.io/iptv/categories/travel.m3u">Travel (o2)</option>
-    <option value="https://iptv-org.github.io/iptv/index.category.m3u">متفرقه(o2)</option>
-    <option value="https://iptv-org.github.io/iptv/languages/fas.m3u">Persian (o2)</option>
-    <option value="https://iptv-org.github.io/iptv/regions/asia.m3u">asian (o2)</option>            
-</select>
+    <!-- fa-pause -->
+    <symbol id="icon-pause" viewBox="0 0 512 512">
+      <path d="M48 64C21.49 64 0 85.49 0 112V400C0 426.5 21.49 448 48 448H176C202.5 448 224 426.5 224 400V112C224 85.49 202.5 64 176 64H48zM336 64C309.5 64 288 85.49 288 112V400C288 426.5 309.5 448 336 448H464C490.5 448 512 426.5 512 400V112C512 85.49 490.5 64 464 64H336z"/>
+    </symbol>
 
+    <!-- fa-backward-step -->
+    <symbol id="icon-backward-step" viewBox="0 0 320 512">
+      <path d="M267.5 440.6C277.5 448.1 288 441.8 288 431.1V80.89C288 70.24 277.5 63.04 267.5 71.37L31.51 215.4C21.84 222.2 21.84 237.8 31.51 244.6L267.5 440.6zM32 80C14.33 80 0 94.33 0 112V400C0 417.7 14.33 432 32 432C49.67 432 64 417.7 64 400V112C64 94.33 49.67 80 32 80z"/>
+    </symbol>
 
-        <select id="channel-list">
-            <option>Select a channel</option>
-        </select>
+    <!-- fa-forward-step -->
+    <symbol id="icon-forward-step" viewBox="0 0 320 512">
+      <path d="M52.48 71.37C42.47 63.04 32 70.24 32 80.89V431.1C32 441.8 42.47 448.1 52.48 440.6L288.5 244.6C298.2 237.8 298.2 222.2 288.5 215.4L52.48 71.37zM288 80C270.3 80 256 94.33 256 112V400C256 417.7 270.3 432 288 432C305.7 432 320 417.7 320 400V112C320 94.33 305.7 80 288 80z"/>
+    </symbol>
 
-        <!-- دکمه تلگرام -->
-        <a id="telegram-link" href="https://t.me/+1YT4su0a0H84NTM8" target="_blank">Join Telegram Channel</a>
+    <!-- fa-expand -->
+    <symbol id="icon-expand" viewBox="0 0 448 512">
+      <path d="M448 32v128c0 17.69-14.31 32-32 32s-32-14.31-32-32V128h-64C305.6 128 288 110.4 288 88S305.6 48 320 48h96C433.7 48 448 62.33 448 80zM128 48c17.69 0 32 14.33 32 32s-14.31 32-32 32H64v32c0 17.69-14.31 32-32 32S0 161.69 0 144V48C0 30.33 14.31 16 32 16h96zM416 336c17.69 0 32 14.31 32 32v96c0 17.67-14.33 32-32 32h-96c-17.69 0-32-14.33-32-32s14.31-32 32-32h64v-32c0-17.69 14.31-32 32-32zM160 424c0 17.69-14.31 32-32 32H32c-17.67 0-32-14.33-32-32v-96c0-17.69 14.33-32 32-32s32 14.31 32 32v32h64c17.69 0 32 14.31 32 32v32z"/>
+    </symbol>
+
+    <!-- fa-tv -->
+    <symbol id="icon-tv" viewBox="0 0 640 512">
+      <path d="M528 64H112C50.14 64 0 114.1 0 176v192c0 61.86 50.14 112 112 112h416c61.86 0 112-50.14 112-112V176C640 114.1 589.9 64 528 64zM592 368c0 35.29-28.71 64-64 64H112c-35.29 0-64-28.71-64-64V176c0-35.29 28.71-64 64-64h416c35.29 0 64 28.71 64 64V368z"/>
+    </symbol>
+
+    <!-- fa-volume-high -->
+    <symbol id="icon-volume-high" viewBox="0 0 576 512">
+      <path d="M215.03 71.05C224.2 76.4 230.4 86.55 230.4 96v320c0 9.453-6.188 19.59-15.38 24.94C210.6 444.5 206.3 445.6 202 445.6c-5.062 0-10.09-1.609-14.31-4.828L98.81 384H32c-17.62 0-32-14.36-32-31.98v-192C0 142.4 14.38 128 32 128h66.81l88.88-56.84C198.3 66.16 209.3 65.71 215.03 71.05zM365.1 64.18c-11.56-7.328-26.66-3.781-33.98 7.734c-7.312 11.53-3.797 26.61 7.719 33.94C376 129 384 147 384 167.3v177.4c0 20.38-8.025 38.34-44.36 61.45c-11.52 7.297-15.02 22.38-7.719 33.91c4.656 7.391 12.66 11.43 20.63 11.43c4.5 0 9.062-1.266 13.34-3.703C416 432.4 448 400 448 344.7V167.3C448 112 416 79.63 365.1 64.18z"/>
+    </symbol>
+
+    <!-- fa-magnifying-glass -->
+    <symbol id="icon-magnifying-glass" viewBox="0 0 512 512">
+      <path d="M500.5 443.1l-100.2-100.2c27.62-35.52 44.24-80.49 44.24-129.8C444.5 96.51 347.8 0 222.2 0S0 96.51 0 213.1s96.51 213.1 222.2 213.1c49.38 0 94.35-16.62 129.8-44.24l100.2 100.2c4.531 4.531 10.47 6.938 16.41 6.938s11.88-2.344 16.41-6.875C509.6 466.9 509.6 452.4 500.5 443.1zM222.2 384c-94.39 0-170.9-76.47-170.9-170.9S127.8 42.16 222.2 42.16s170.9 76.47 170.9 170.9S316.6 384 222.2 384z"/>
+    </symbol>
+  </svg>
+  <!-- پایان مخزن آیکون‌ها -->
+
+  <div id="main-container">
+    <!-- لوگو -->
+    <div id="logo">
+      <h1>O2 Modern IPTV Player</h1>
     </div>
-    <script>
-        const video = document.getElementById('video');
-        const iptvSelect = document.getElementById('iptv-select');
-        const channelList = document.getElementById('channel-list');
-        const playPauseBtn = document.getElementById('play-pause');
-        const prevChannelBtn = document.getElementById('prev-channel');
-        const nextChannelBtn = document.getElementById('next-channel');
-        const fullscreenBtn = document.getElementById('fullscreen');
-        const volumeSlider = document.getElementById('volume');
 
-        let channels = [];
-        let currentChannelIndex = 0;
+    <!-- پلیر -->
+    <div id="player-container">
+      <video id="video"></video>
+      <!-- کنترل‌های پلیر -->
+      <div id="controls">
+        <!-- دکمه پخش/مکث -->
+        <button class="control-btn" id="play-pause" title="پخش/مکث">
+          <svg class="icon"><use xlink:href="#icon-play"></use></svg>
+        </button>
+        <!-- دکمه قبلی -->
+        <button class="control-btn" id="prev-channel" title="کانال قبلی">
+          <svg class="icon"><use xlink:href="#icon-backward-step"></use></svg>
+        </button>
+        <!-- دکمه بعدی -->
+        <button class="control-btn" id="next-channel" title="کانال بعدی">
+          <svg class="icon"><use xlink:href="#icon-forward-step"></use></svg>
+        </button>
+        <!-- دکمه تمام صفحه -->
+        <button class="control-btn" id="fullscreen" title="تمام صفحه">
+          <svg class="icon"><use xlink:href="#icon-expand"></use></svg>
+        </button>
+        <!-- دکمه تصویر در تصویر -->
+        <button class="control-btn" id="pip-btn" title="تصویر در تصویر">
+          <svg class="icon"><use xlink:href="#icon-tv"></use></svg>
+        </button>
+        <!-- ولوم -->
+        <div class="volume-box">
+          <input type="range" id="volume" min="0" max="1" step="0.1" value="1" />
+          <svg class="icon"><use xlink:href="#icon-volume-high"></use></svg>
+        </div>
+      </div>
+    </div>
 
-        // بارگذاری کانال‌ها
-        async function loadChannels(url) {
-            try {
-                const response = await fetch(url);
-                const data = await response.text();
-                channels = parseM3U(data);
-                populateChannelList(channels); // پر کردن لیست کانال
-                if (channels.length > 0) {
-                    loadChannel(channels[0].url); // بارگذاری اولین کانال
-                } else {
-                    channelList.innerHTML = '<option>No channels available</option>';
-                }
-            } catch (error) {
-                console.error('Error loading channels:', error);
-                alert('Failed to load channels.');
-            }
+    <!-- انتخاب فهرست IPTV -->
+    <div id="iptv-section">
+      <select id="iptv-select">
+        <option value="https://raw.githubusercontent.com/Free-TV/IPTV/master/playlist.m3u8">خارجی (o2)</option>
+        <option value="https://raw.githubusercontent.com/iptv-org/iptv/master/streams/ir.m3u">ایران (o2)</option>
+        <option value="https://raw.githubusercontent.com/iptv-org/iptv/master/streams/us_adultswim.m3u">Adult Swim (o2)</option>
+        <option value="https://raw.githubusercontent.com/iptv-org/iptv/master/streams/ru.m3u">تلویزیون روسیه (o2)</option>
+        <option value="https://raw.githubusercontent.com/iptv-org/iptv/master/streams/us_local.m3u">آمریکا (o2)</option>
+        <option value="https://raw.githubusercontent.com/iptv-org/iptv/master/streams/ir_aionet.m3u">IR Aionet (o2)</option>
+        <option value="https://iptv-org.github.io/iptv/countries/ir.m3u">IR WN (o2)</option>
+        <option value="https://iptv-org.github.io/iptv/categories/music.m3u">Music (o2)</option>
+        <option value="https://iptv-org.github.io/iptv/categories/news.m3u">News (o2)</option>
+        <option value="https://iptv-org.github.io/iptv/categories/sports.m3u">Sports (o2)</option>
+        <option value="https://raw.githubusercontent.com/iptv-org/iptv/master/streams/fr.m3u">France (o2)</option>
+        <option value="https://raw.githubusercontent.com/iptv-org/iptv/master/streams/de.m3u">Germany (o2)</option>
+        <option value="https://raw.githubusercontent.com/iptv-org/iptv/master/streams/ru.m3u">Russia (o2)</option>
+        <option value="https://iptv-org.github.io/iptv/categories/travel.m3u">Travel (o2)</option>
+        <option value="https://iptv-org.github.io/iptv/index.category.m3u">متفرقه (o2)</option>
+        <option value="https://iptv-org.github.io/iptv/languages/fas.m3u">Persian (o2)</option>
+        <option value="https://iptv-org.github.io/iptv/regions/asia.m3u">Asian (o2)</option>
+      </select>
+    </div>
+
+    <!-- جستجوی کانال -->
+    <div class="search-container">
+      <input type="text" id="channel-search" placeholder="جستجوی نام کانال...">
+      <svg class="icon"><use xlink:href="#icon-magnifying-glass"></use></svg>
+    </div>
+
+    <!-- لیست کانال ها -->
+    <div id="channel-list-container"></div>
+
+    <!-- دکمه تلگرام -->
+    <div style="text-align: center;">
+      <a id="telegram-link" href="https://t.me/+1YT4su0a0H84NTM8" target="_blank">
+        Join Telegram Channel
+      </a>
+    </div>
+  </div>
+
+  <script>
+    /* المان‌های DOM */
+    const video = document.getElementById('video');
+    const playPauseBtn = document.getElementById('play-pause');
+    const prevChannelBtn = document.getElementById('prev-channel');
+    const nextChannelBtn = document.getElementById('next-channel');
+    const fullscreenBtn = document.getElementById('fullscreen');
+    const pipBtn = document.getElementById('pip-btn');
+    const volumeSlider = document.getElementById('volume');
+    const iptvSelect = document.getElementById('iptv-select');
+    const channelSearch = document.getElementById('channel-search');
+    const channelListContainer = document.getElementById('channel-list-container');
+
+    /* متغیرهای کانال */
+    let channels = [];
+    let filteredChannels = [];
+    let currentChannelIndex = 0;
+    let hlsInstance = null;
+
+    /* آیکون کانال (نمونه) */
+    const channelIcons = {
+      "BBC": "https://upload.wikimedia.org/wikipedia/commons/e/e3/Bbc_world_news_logo.png",
+      "CNN": "https://upload.wikimedia.org/wikipedia/commons/6/6d/CNN_International_logo.png",
+      "Sky News": "https://upload.wikimedia.org/wikipedia/en/2/2f/Sky_News_2019.png",
+      "IRIB": "https://upload.wikimedia.org/wikipedia/commons/e/e1/IRIB_Logo.svg",
+      "Al Jazeera": "https://upload.wikimedia.org/wikipedia/en/4/4f/Aljazeera_eng.png",
+      "HBO": "https://upload.wikimedia.org/wikipedia/commons/1/17/HBO_logo.svg"
+    };
+    const defaultIcon = "https://cdn-icons-png.flaticon.com/512/44/44386.png";
+
+    /* =========== توابع اصلی =========== */
+    // بارگذاری کانال‌ها از M3U
+    async function loadChannelsFromURL(m3uURL) {
+      try {
+        const resp = await fetch(m3uURL);
+        const data = await resp.text();
+        channels = parseM3U(data);
+        filteredChannels = [...channels];
+        currentChannelIndex = 0;
+        renderChannels(filteredChannels);
+
+        if (filteredChannels.length > 0) {
+          loadChannel(filteredChannels[0].url);
+        } else {
+          video.pause();
+          video.src = '';
+          channelListContainer.innerHTML = '<div style="text-align:center;">هیچ کانالی یافت نشد.</div>';
         }
+      } catch (error) {
+        console.log('خطا در بارگذاری لیست M3U:', error);
+        channelListContainer.innerHTML = '<div style="text-align:center;">خطا در بارگذاری.</div>';
+        video.pause();
+        video.src = '';
+      }
+    }
 
-        function parseM3U(data) {
-            const lines = data.split('\n');
-            return lines.reduce((acc, line, i) => {
-                if (line.startsWith('#EXTINF')) {
-                    const name = line.split(',')[1]?.trim();
-                    const url = lines[i + 1]?.trim();
-                    if (url) acc.push({ name, url });
-                }
-                return acc;
-            }, []);
+    // Parse فایل M3U
+    function parseM3U(data) {
+      const lines = data.split('\n');
+      const result = [];
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (line.startsWith('#EXTINF')) {
+          let name = line.split(',')[1]?.trim() || 'کانال نامشخص';
+          let url = (lines[i+1] || '').trim();
+          if (url && !url.startsWith('#')) {
+            result.push({ name, url });
+          }
         }
+      }
+      return result;
+    }
 
-        function populateChannelList(channelArray) {
-            channelList.innerHTML = ''; // پاک کردن لیست فعلی
-            if (channelArray.length === 0) {
-                channelList.innerHTML = '<option>No channels available</option>';
-                return;
-            }
-            channelArray.forEach((channel, index) => {
-                const option = document.createElement('option');
-                option.value = index;
-                option.textContent = channel.name || `Channel ${index + 1}`;
-                channelList.appendChild(option);
-            });
-        }
-
-        function loadChannel(url) {
-            if (Hls.isSupported()) {
-                const hls = new Hls();
-                hls.loadSource(url);
-                hls.attachMedia(video);
-            } else {
-                video.src = url;
-            }
-            video.play();
-        }
-
-        playPauseBtn.addEventListener('click', () => {
-            if (video.paused) video.play();
-            else video.pause();
+    // رسم لیست کانال
+    function renderChannels(channelArray) {
+      channelListContainer.innerHTML = '';
+      if (channelArray.length === 0) {
+        channelListContainer.innerHTML = '<div style="text-align:center;">کانالی یافت نشد.</div>';
+        return;
+      }
+      channelArray.forEach((ch, idx) => {
+        const item = document.createElement('div');
+        item.className = 'channel-item';
+        item.addEventListener('click', () => {
+          currentChannelIndex = idx;
+          loadChannel(ch.url);
+          scrollToCurrentChannel();
         });
 
-        prevChannelBtn.addEventListener('click', () => {
-            currentChannelIndex = (currentChannelIndex - 1 + channels.length) % channels.length;
-            loadChannel(channels[currentChannelIndex].url);
-        });
+        // آیکون کانال
+        const iconDiv = document.createElement('div');
+        iconDiv.className = 'channel-icon';
+        iconDiv.style.backgroundImage = `url(${getChannelIcon(ch.name)})`;
 
-        nextChannelBtn.addEventListener('click', () => {
-            currentChannelIndex = (currentChannelIndex + 1) % channels.length;
-            loadChannel(channels[currentChannelIndex].url);
-        });
+        // اطلاعات کانال
+        const infoDiv = document.createElement('div');
+        infoDiv.className = 'channel-info';
+        const nameDiv = document.createElement('div');
+        nameDiv.className = 'channel-name';
+        nameDiv.textContent = ch.name;
+        const sourceDiv = document.createElement('div');
+        sourceDiv.className = 'channel-source';
+        sourceDiv.textContent = '...';
 
-        fullscreenBtn.addEventListener('click', () => {
-            if (!document.fullscreenElement) video.requestFullscreen();
-            else document.exitFullscreen();
-        });
+        infoDiv.appendChild(nameDiv);
+        infoDiv.appendChild(sourceDiv);
+        item.appendChild(iconDiv);
+        item.appendChild(infoDiv);
+        channelListContainer.appendChild(item);
+      });
+    }
 
-        volumeSlider.addEventListener('input', (e) => {
-            video.volume = e.target.value;
-        });
+    // تعیین آیکون کانال
+    function getChannelIcon(channelName) {
+      const foundKey = Object.keys(channelIcons).find(key =>
+        channelName.toLowerCase().includes(key.toLowerCase())
+      );
+      return foundKey ? channelIcons[foundKey] : defaultIcon;
+    }
 
-        iptvSelect.addEventListener('change', (e) => {
-            loadChannels(e.target.value);
+    // بارگذاری و پخش کانال
+    function loadChannel(url) {
+      // انهدام HLS قبلی
+      if (hlsInstance) {
+        hlsInstance.destroy();
+        hlsInstance = null;
+      }
+      if (Hls.isSupported()) {
+        hlsInstance = new Hls();
+        hlsInstance.loadSource(url);
+        hlsInstance.attachMedia(video);
+        hlsInstance.on(Hls.Events.ERROR, function(event, data) {
+          console.warn("HLS Error:", data);
         });
+      } else {
+        // مرورگرهایی مانند Safari
+        video.src = url;
+      }
+      video.play().catch(err => console.log(err));
 
-        channelList.addEventListener('change', (e) => {
-            const selectedIndex = parseInt(e.target.value);
-            if (!isNaN(selectedIndex)) {
-                currentChannelIndex = selectedIndex;
-                loadChannel(channels[selectedIndex].url);
-            }
-        });
+      // آیکون پخش/مکث را روی "مکث" بگذاریم
+      const iconSVG = playPauseBtn.querySelector('use');
+      if (iconSVG) {
+        iconSVG.setAttribute('xlink:href', '#icon-pause');
+      }
+    }
 
-        // بارگذاری پیش‌فرض
-        loadChannels(iptvSelect.value);
-    </script>
+    // اسکرول به کانال جاری
+    function scrollToCurrentChannel() {
+      const items = channelListContainer.querySelectorAll('.channel-item');
+      if (items[currentChannelIndex]) {
+        items[currentChannelIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+
+    /* =========== کنترل‌های پلیر =========== */
+    // پخش/مکث
+    playPauseBtn.addEventListener('click', () => {
+      if (video.paused) {
+        video.play();
+        const iconSVG = playPauseBtn.querySelector('use');
+        if (iconSVG) iconSVG.setAttribute('xlink:href', '#icon-pause');
+      } else {
+        video.pause();
+        const iconSVG = playPauseBtn.querySelector('use');
+        if (iconSVG) iconSVG.setAttribute('xlink:href', '#icon-play');
+      }
+    });
+
+    // قبلی
+    prevChannelBtn.addEventListener('click', () => {
+      if (!filteredChannels.length) return;
+      currentChannelIndex = (currentChannelIndex - 1 + filteredChannels.length) % filteredChannels.length;
+      loadChannel(filteredChannels[currentChannelIndex].url);
+      scrollToCurrentChannel();
+    });
+
+    // بعدی
+    nextChannelBtn.addEventListener('click', () => {
+      if (!filteredChannels.length) return;
+      currentChannelIndex = (currentChannelIndex + 1) % filteredChannels.length;
+      loadChannel(filteredChannels[currentChannelIndex].url);
+      scrollToCurrentChannel();
+    });
+
+    // تمام صفحه
+    fullscreenBtn.addEventListener('click', () => {
+      if (!document.fullscreenElement) {
+        video.requestFullscreen().catch(err => console.log(err));
+      } else {
+        document.exitFullscreen().catch(err => console.log(err));
+      }
+    });
+
+    // تصویر در تصویر
+    pipBtn.addEventListener('click', async () => {
+      if (document.pictureInPictureElement) {
+        await document.exitPictureInPicture();
+      } else {
+        await video.requestPictureInPicture().catch(e => console.log(e));
+      }
+    });
+
+    // ولوم
+    volumeSlider.addEventListener('input', (e) => {
+      video.volume = e.target.value;
+    });
+
+    /* =========== رویدادهای لیست IPTV و جستجو =========== */
+    // تغییر لیست IPTV
+    iptvSelect.addEventListener('change', (e) => {
+      loadChannelsFromURL(e.target.value);
+    });
+
+    // جستجوی کانال
+    channelSearch.addEventListener('input', () => {
+      const query = channelSearch.value.trim().toLowerCase();
+      filteredChannels = channels.filter(ch =>
+        ch.name.toLowerCase().includes(query)
+      );
+      renderChannels(filteredChannels);
+      if (filteredChannels.length > 0) {
+        currentChannelIndex = 0;
+        loadChannel(filteredChannels[0].url);
+      } else {
+        video.pause();
+        video.src = '';
+      }
+    });
+
+    /* بارگذاری اولیه */
+    loadChannelsFromURL(iptvSelect.value);
+  </script>
 </body>
 </html>
